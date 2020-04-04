@@ -1,4 +1,4 @@
-package com.ideas.demente.app;
+package com.demente.ideas.app;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
