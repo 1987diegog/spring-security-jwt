@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "SPRING_LEARN_T_ROLES",
-        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "authority"})})
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"client_id", "authority"})})
 public class Role implements Serializable {
 
     @Id // indica que este atributo es la llave primaria (primary key)

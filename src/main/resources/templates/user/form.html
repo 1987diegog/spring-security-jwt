@@ -11,13 +11,13 @@
             <!--
             Agregar los mensajes de error todos juntos y no por separado como se hace abajo (es otra opcion)...
 
-                <div th:object="${user}" th:remove="tag">
+                <div th:object="${client}" th:remove="tag">
                     <ul th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
                         <li th:each="error: ${#fields.errors('*')}" th:text="${error}"></li>
                     </ul>
                 </div>
             -->
-            <form th:action="@{/user-form}" th:object="${user}" method="post">
+            <form th:action="@{/client-form}" th:object="${client}" method="post">
                 <table class="table table-bordered">
                     <div class="form-group">
                         <label class="col-sm-2 col-form-label">Username</label>

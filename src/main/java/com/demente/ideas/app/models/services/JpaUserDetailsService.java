@@ -1,13 +1,14 @@
 package com.demente.ideas.app.models.services;
 
+import com.demente.ideas.app.models.entity.Client;
 import com.demente.ideas.app.models.entity.Role;
-import com.demente.ideas.app.models.entity.User;
-import com.demente.ideas.app.models.repository.IUserRepository;
+import com.demente.ideas.app.models.repository.IClientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,20 +24,20 @@ public class JpaUserDetailsService implements UserDetailsService {
     private Logger logger = LoggerFactory.getLogger(JpaUserDetailsService.class);
 
     @Autowired
-    private IUserRepository userRepository;
+    private IClientRepository clientRepository;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            logger.error("Error login: User not exist: " + username);
-            throw new UsernameNotFoundException("User not exist: " + username);
+        Client client = clientRepository.findByUsername(username);
+        if (client == null) {
+            logger.error("Error login: Client not exist: " + username);
+            throw new UsernameNotFoundException("Client not exist: " + username);
         }
 
         List<GrantedAuthority> authorities = new ArrayList<>();
-        for (Role role : user.getRoles()) {
+        for (Role role : client.getRoles()) {
             logger.info("Role:".concat(role.getAuthority()));
             authorities.add(new SimpleGrantedAuthority(role.getAuthority()));
         }
@@ -46,7 +47,7 @@ public class JpaUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User " + username + ", dont have any roles");
         }
 
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
-                user.getEnabled(), true, true, true, authorities);
+        return new User(client.getUsername(), client.getPassword(),
+                client.getEnabled(), true, true, true, authorities);
     }
 }

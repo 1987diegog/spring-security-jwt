@@ -10,10 +10,10 @@
         <div class="card-body">
             <h4 class="card-title">
                 <a sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-primary btn-xs"
-                   th:href="@{/user-form}">Crear usuario</a>
+                   th:href="@{/client-form}">Crear usuario</a>
             </h4>
-            <div th:if="${users.isEmpty()}">Users not exist</div>
-            <table class="table table-striped table-bordered" th:if="${not users.isEmpty()}">
+            <div th:if="${clients.isEmpty()}">Clients not exist</div>
+            <table class="table table-striped table-bordered" th:if="${not clients.isEmpty()}">
                 <thead class="thead-inverse">
                 <tr>
                     <th sec:authorize="hasRole('ROLE_USER')">Id</th>
@@ -28,21 +28,21 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="user: ${users}">
-                    <td th:text="${user.id}"></td>
-                    <td th:text="${user.username}"></td>
-                    <td th:text="${user.name}"></td>
-                    <td th:text="${user.lastname}"></td>
-                    <td th:text="${user.email}"></td>
-                    <td th:text="${user.birthday}"></td>
-                    <td th:text="${user.createdAt}"></td>
+                <tr th:each="client: ${clients}">
+                    <td th:text="${client.id}"></td>
+                    <td th:text="${client.username}"></td>
+                    <td th:text="${client.name}"></td>
+                    <td th:text="${client.lastname}"></td>
+                    <td th:text="${client.email}"></td>
+                    <td th:text="${client.birthday}"></td>
+                    <td th:text="${client.createdAt}"></td>
                     <td sec:authorize="hasRole('ROLE_ADMIN')">
                         <a class="btn btn-primary btn-xs"
-                           th:href="@{/user-form/} + ${user.id}"
+                           th:href="@{/client-form/} + ${client.id}"
                            th:text="'Editar'"></a></td>
                     <td sec:authorize="hasRole('ROLE_ADMIN')">
                         <a class="btn btn-danger btn-xs"
-                           th:href="@{/eliminar/} + ${user.id}"
+                           th:href="@{/eliminar/} + ${client.id}"
                            th:text="'Eliminar'"
                            onclick="return confirm('Esta seguro que deseas eliminar?');"></a>
                     </td>

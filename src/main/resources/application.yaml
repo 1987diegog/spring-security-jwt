@@ -28,8 +28,8 @@ server:
 #      generate-ddl: true
 #      show-sql: true
 #    database-platform: org.hibernate.dialect.MySQL8Dialect
-#logging:
-#  level:
-#    org:
-#      hibernate:
-#        SQL: debug
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug
