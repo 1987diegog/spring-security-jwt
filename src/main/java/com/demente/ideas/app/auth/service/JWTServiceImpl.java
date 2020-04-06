@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 
-import com.demente.ideas.app.auth.SimpleGrantedAuthorityMixin;
+import com.demente.ideas.app.auth.SimpleGrantedAuthorityMixIn;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,73 +23,83 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @Component
 public class JWTServiceImpl implements JWTService {
 
-	public static final String SECRET = Base64Utils.encodeToString("Alguna.Clave.Secreta.123456".getBytes());
-	
-	public static final long EXPIRATION_DATE = 14000000L;
-	public static final String TOKEN_PREFIX = "Bearer ";
-	public static final String HEADER_STRING = "Authorization";
-	
-	@Override
-	public String create(Authentication auth) throws IOException {
+	// Secret key generada con http://keygen.io/
+    public static final String SECRET = Base64Utils
+			.encodeToString("878b75b1a38838163ee71f80725fb42fd091887e0bb5b370a313e2de91a99f4736403d7fbca8f3ee796578a3b2692cf1f6d2e6d0537d8e238ef2340ab2e5ef7b"
+					.getBytes());
 
-		String username = ((User) auth.getPrincipal()).getUsername();
+    public static final long EXPIRATION_DATE = 3600000L;
+    public static final String TOKEN_PREFIX = "Bearer ";
+    public static final String HEADER_STRING = "Authorization";
 
-		Collection<? extends GrantedAuthority> roles = auth.getAuthorities();
+    @Override
+    public String create(Authentication auth) throws IOException {
 
-		Claims claims = Jwts.claims();
-		claims.put("authorities", new ObjectMapper().writeValueAsString(roles));
+//        SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+//        // String base64Key = Encoders.BASE64.encode(secretKey.getEncoded());
+//
+//        // data user
+        String username = ((User) (auth.getPrincipal())).getUsername();
+        Collection<? extends GrantedAuthority> roles = auth.getAuthorities();
 
-		String token = Jwts.builder().setClaims(claims).setSubject(username)
-				.signWith(SignatureAlgorithm.HS512, SECRET.getBytes()).setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_DATE)).compact();
+        Claims claims = Jwts.claims();
+        claims.put("authorities", new ObjectMapper().writeValueAsString(roles));
+//
+//        // se crea el token que se retornara al cliente
+//        String token = Jwts.builder()
+//                .setClaims(claims)
+//                .setSubject(username)
+//                .signWith(secretKey, SignatureAlgorithm.HS512)
+//                .setIssuedAt(new Date())
+//                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_DATE)) // --> 1hs
+//                .compact();
 
-		return token;
-	}
 
-	@Override
-	public boolean validate(String token) {
+        String token = Jwts.builder().setClaims(claims).setSubject(username)
+                .signWith(SignatureAlgorithm.HS512, SECRET.getBytes()).setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_DATE)).compact();
 
-		try {
+        return token;
+    }
 
-			getClaims(token);
+    @Override
+    public boolean validate(String token) {
+        try {
+            getClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
 
-			return true;
-		} catch (JwtException | IllegalArgumentException e) {
-			return false;
-		}
+    @Override
+    public Claims getClaims(String token) {
+        Claims claims = Jwts.parser().setSigningKey(SECRET.getBytes())
+                .parseClaimsJws(resolve(token)).getBody();
+        return claims;
+    }
 
-	}
+    @Override
+    public String getUsername(String token) {
+        return getClaims(token).getSubject();
+    }
 
-	@Override
-	public Claims getClaims(String token) {
-		Claims claims = Jwts.parser().setSigningKey(SECRET.getBytes())
-				.parseClaimsJws(resolve(token)).getBody();
-		return claims;
-	}
+    @Override
+    public Collection<? extends GrantedAuthority> getRoles(String token) throws IOException {
+        Object roles = getClaims(token).get("authorities");
 
-	@Override
-	public String getUsername(String token) {
-		// TODO Auto-generated method stub
-		return getClaims(token).getSubject();
-	}
+        Collection<? extends GrantedAuthority> authorities = Arrays
+                .asList(new ObjectMapper().addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityMixIn.class)
+                        .readValue(roles.toString().getBytes(), SimpleGrantedAuthority[].class));
 
-	@Override
-	public Collection<? extends GrantedAuthority> getRoles(String token) throws IOException {
-		Object roles = getClaims(token).get("authorities");
+        return authorities;
+    }
 
-		Collection<? extends GrantedAuthority> authorities = Arrays
-				.asList(new ObjectMapper().addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityMixin.class)
-						.readValue(roles.toString().getBytes(), SimpleGrantedAuthority[].class));
-
-		return authorities;
-	}
-
-	@Override
-	public String resolve(String token) {
-		if (token != null && token.startsWith(TOKEN_PREFIX)) {
-			return token.replace(TOKEN_PREFIX, "");
-		}
-		return null;
-	}
-
+    @Override
+    public String resolve(String token) {
+        if (token != null && token.startsWith(TOKEN_PREFIX)) {
+            return token.replace(TOKEN_PREFIX, "");
+        }
+        return null;
+    }
 }

@@ -1,30 +1,24 @@
 package com.demente.ideas.app.auth.filter;
 
+import com.demente.ideas.app.auth.service.JWTService;
+import com.demente.ideas.app.auth.service.JWTServiceImpl;
 import com.demente.ideas.app.models.entity.Client;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,12 +30,14 @@ import java.util.Map;
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private AuthenticationManager authenticationManager;
+    private JWTService jwtService;
 
-    public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JWTAuthenticationFilter(AuthenticationManager authenticationManager, JWTService jwtService) {
         this.authenticationManager = authenticationManager;
 
         // Se indica que se accedera al login a traves de un POST a /api/login
         setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/api/login", "POST"));
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -90,51 +86,34 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                            FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+                                            Authentication authResult) throws IOException, ServletException {
 
-        SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-        // String base64Key = Encoders.BASE64.encode(secretKey.getEncoded());
+        String token = jwtService.create(authResult);
 
-        // data user
-        String username = ((User) (authResult.getPrincipal())).getUsername();
-        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
+        response.addHeader(JWTServiceImpl.HEADER_STRING, JWTServiceImpl.TOKEN_PREFIX + token);
 
-        Claims claims = Jwts.claims();
-        claims.put("authorities", new ObjectMapper().writeValueAsString(roles));
-
-        // se crea el token que se retornara al cliente
-        String token = Jwts.builder()
-                .setClaims(claims)
-                .setSubject(username)
-                .signWith(secretKey, SignatureAlgorithm.HS512)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // --> 1hs
-                .compact();
-
-        // se setea el token para que lo reciba el cliente. El "Bearer" es un estandar
-        response.addHeader("Authorization", "Bearer " + token);
-
-        Map<String, Object> body = new HashMap<>();
+        Map<String, Object> body = new HashMap<String, Object>();
         body.put("token", token);
         body.put("user", (User) authResult.getPrincipal());
-        body.put("mensaje", String.format("El usuario %s ha iniciado sesion con exito", username));
+        body.put("mensaje", String.format("Hola %s, has iniciado sesión con éxito!",
+                ((User) authResult.getPrincipal()).getUsername()));
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setStatus(200);
-        response.setContentType("aplication/json");
+        response.setContentType("application/json");
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                               AuthenticationException failed) throws IOException, ServletException {
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("mensaje", "Error de autentificacion, el usuario o password es incorrecto");
+        Map<String, Object> body = new HashMap<String, Object>();
+        body.put("mensaje", "Error de autenticación: username o password incorrecto!");
         body.put("error", failed.getMessage());
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setStatus(401);
-        response.setContentType("aplication/json");
+        response.setContentType("application/json");
     }
 }

@@ -2,9 +2,10 @@ package com.demente.ideas.app;
 
 import com.demente.ideas.app.auth.filter.JWTAuthenticationFilter;
 import com.demente.ideas.app.auth.filter.JWTAuthorizationFilter;
+import com.demente.ideas.app.auth.service.JWTService;
 import com.demente.ideas.app.models.services.JpaUserDetailsService;
-import com.demente.ideas.app.auth.handler.LoginSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -24,10 +25,10 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private LoginSuccessHandler successHandler;
+    private JpaUserDetailsService jpaUserDetailsService;
 
     @Autowired
-    private JpaUserDetailsService jpaUserDetailsService;
+    private JWTService jwtService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -36,8 +37,9 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest()
                 .authenticated()
-                .and().addFilter(new JWTAuthenticationFilter(authenticationManager()))
-                .addFilter(new JWTAuthorizationFilter(authenticationManager()))
+                .and()
+                .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtService))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager(), jwtService))
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
@@ -85,6 +87,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(passwordEncoder);
 
         /**
+         *
          * IN MEMORY AUTHENTICATION:
 
          PasswordEncoder encoder = this.passwordEncoder;
