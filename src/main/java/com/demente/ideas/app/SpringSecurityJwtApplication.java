@@ -24,13 +24,12 @@ public class SpringSecurityJwtApplication implements CommandLineRunner {
         // Solamente a modo de ejemplo, se encriptan dos password que seran posteriormente utilizadas
         // en el import.sql
         String password_admin = "admin";
-        String password_num = "123456";
+        String password_num = "user";
 
         String bCryptPassword = passwordEncoder.encode(password_admin);
         System.out.println("BCryptPasswordEncoder - Clave encriptada para admin: " + bCryptPassword);
 
         bCryptPassword = passwordEncoder.encode(password_num);
-        System.out.println("BCryptPasswordEncoder - Clave encriptada para otros usuarios: :" + bCryptPassword);
+        System.out.println("BCryptPasswordEncoder - Clave encriptada para otros usuarios: " + bCryptPassword);
     }
-
 }

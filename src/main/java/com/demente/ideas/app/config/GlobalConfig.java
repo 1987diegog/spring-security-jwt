@@ -1,4 +1,4 @@
-package com.demente.ideas.app;
+package com.demente.ideas.app.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
