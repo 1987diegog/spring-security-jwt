@@ -23,7 +23,7 @@ Con roles -> ROLE_USER
 - username: diegog09
 - password: 123456
 
-### BD - h2 (acceso solo con rol admin)
+### BD - h2 
 http://localhost:8099/h2-console/
 
 - *JDBC URL*: **jdbc:h2:mem:testdb**
