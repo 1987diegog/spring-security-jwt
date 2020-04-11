@@ -33,6 +33,10 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
+        // H2-console config
+        http.authorizeRequests().antMatchers("/h2-console/**").permitAll();
+        http.headers().frameOptions().disable();
+
         http.authorizeRequests()
                 .antMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest()
@@ -42,40 +46,6 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilter(new JWTAuthorizationFilter(authenticationManager(), jwtService))
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
-
-//
-//        // H2-console config
-//        http.authorizeRequests().antMatchers("/h2-console/**").hasAnyRole("ADMIN");
-//        // Se deshabilita la proteccion csrf ya que utilizaremos JWT y no el token de csrf
-//        // generado en los formularios de spring. Tambien se indica que se trabajara con Stateless
-//        http.csrf().disable().sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-//        http.headers().frameOptions().disable();
-//
-//        // spring ejecutrara un filtro (un interceptor), antes de cargar cualquier ruta de nuestro controlador
-//        // va a controlar (autorizacion) si el usuario tiene permisos para permitirle continuar, sino,
-//        // negara el acceso y redirigira a la pagina de Login.
-//        http.authorizeRequests()
-//                .antMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
-//                .anyRequest()
-//                .authenticated()
-//                .and().addFilter(new JWTAuthenticationFilter(authenticationManager()));
-//
-//                /* No se utilizara la seguridad por session, por lo tanto no necesitamos la redireccion
-//                   a login o el logout ya que se utilizara JWT y necesitamos un codigo de error en el
-//                   response y no que devuelva una pagina HTML como el login si no se puede acceder a
-//                   un recurso o no se esta autentificado. Los manejos de errores tambien seran distinos.
-//
-//                .and()
-//                .formLogin()
-//                .successHandler(successHandler)
-//                .loginPage("/login")
-//                .permitAll()
-//                .and()
-//                .logout().permitAll()
-//                .and().exceptionHandling().accessDeniedPage("/error_403_forbidden");*/
-
     }
 
     @Autowired
