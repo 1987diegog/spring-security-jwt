@@ -31,5 +31,9 @@ public class SpringSecurityJwtApplication implements CommandLineRunner {
 
         bCryptPassword = passwordEncoder.encode(password_num);
         System.out.println("BCryptPasswordEncoder - Clave encriptada para otros usuarios: " + bCryptPassword);
+
+        System.out.printf("----------------------------------------------------------------------------");
+        System.out.printf("-------------- INIT public class SpringSecurityJwtApplication --------------");
+        System.out.printf("----------------------------------------------------------------------------");
     }
 }
